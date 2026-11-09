@@ -668,6 +668,8 @@ public:
 	const HitLog *getHitLog() const;
 	/// Reset all the unit hit state flags.
 	void resetUnitHitStates();
+	/// Gets the name of terrain set
+	const std::string& getGlobalTerrainName() const;
 };
 
 }

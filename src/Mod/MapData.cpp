@@ -17,6 +17,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MapData.h"
+#include "MapDataSet.h"
 
 namespace OpenXcom
 {
@@ -582,5 +583,15 @@ void MapData::setStopLOS(bool stopLOS)
 	_stopLOS = stopLOS;
 	_block[1] = stopLOS ? 255 : 0;
 }
+
+/**
+ * Gets the neaim of corresponding terrainSet
+ * @return terrain name
+ */
+const std::string &MapData::getTerrainName() const
+{
+	return _dataset->getName();
+}
+
 
 }

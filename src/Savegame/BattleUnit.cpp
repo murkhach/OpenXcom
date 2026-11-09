@@ -7353,5 +7353,31 @@ ModScript::AwardExperienceParser::AwardExperienceParser(ScriptGlobal* shared, co
 	battleActionImpl(b);
 }
 
+ModScript::PsiAttackPerformedByUnitParser::PsiAttackPerformedByUnitParser(ScriptGlobal* shared, const std::string& name, Mod* mod) : ScriptParserEvents{shared, name,
+    "psi_attack_success",
+    "item",
+    "attacker", "victim",
+    "skill",
+    "attack_strength", "defense_strength",
+    "battle_action",
+    "battle_game" }
+{
+	BindBase b{this};
+	b.addCustomPtr<const Mod>("rules", mod);
+	setEmptyReturn();
+}
 
+ModScript::EndGameTurnParser::EndGameTurnParser(ScriptGlobal* shared, const std::string& name, Mod* mod) : ScriptParserEvents{
+																											   shared,
+																											   name,
+																											   "battle_game",
+																											   "turn",
+																											   "side",
+																										   }
+{
+	BindBase b{this};
+
+	b.addCustomPtr<const Mod>("rules", mod);
+	setEmptyReturn();
+}
 } //namespace OpenXcom

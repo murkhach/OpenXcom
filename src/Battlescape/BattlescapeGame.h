@@ -146,6 +146,7 @@ private:
 
 	helper::SingleRun _endTurnProcessed;
 	helper::SingleRun _triggerProcessed;
+	helper::SingleRun _endTurnScriptRun;
 
 	/// Ends the turn.
 	void endTurn();

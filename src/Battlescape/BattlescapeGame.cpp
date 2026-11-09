@@ -593,6 +593,23 @@ void BattlescapeGame::endTurn()
 			}
 		}
 	}
+	if (_endTurnScriptRun.tryRun())
+	{
+		auto* units = _save->getUnits();
+		if (!units->empty())
+		{
+			const Armor* armor = units->at(0)->getArmor();
+			auto* bg = _save; 
+
+			ModScript::scriptCallback<ModScript::EndGameTurn>(
+				armor,
+				bg,
+				bg->getTurn(),
+				bg->getSide()
+				);
+		}
+	}
+	
 
 	// check for terrain explosions
 	Tile *t = _save->getTileEngine()->checkForTerrainExplosions();
@@ -631,6 +648,7 @@ void BattlescapeGame::endTurn()
 	}
 
 	_triggerProcessed.reset();
+	_endTurnScriptRun.reset();
 	_endTurnProcessed.reset();
 
 	if (_save->getSide() == FACTION_PLAYER)

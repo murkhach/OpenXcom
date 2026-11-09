@@ -170,6 +170,15 @@ class ModScript
 		StatsForNerdsArmorParser(ScriptGlobal* shared, const std::string& name, Mod* mod);
 	};
 
+	struct PsiAttackPerformedByUnitParser : ScriptParserEvents<ScriptOutputArgs<>, const int, BattleItem*, BattleUnit*, BattleUnit*, const RuleSkill*, int, int, int, SavedBattleGame*>
+	{
+		PsiAttackPerformedByUnitParser(ScriptGlobal* shared, const std::string& name, Mod* mod);
+	};
+	struct EndGameTurnParser : ScriptParserEvents<ScriptOutputArgs<>, SavedBattleGame*, int, int>
+	{
+		EndGameTurnParser(ScriptGlobal* shared, const std::string& name, Mod* mod);
+	};
+
 	////////////////////////////////////////////////////////////
 	//					item script
 	////////////////////////////////////////////////////////////
@@ -356,6 +365,9 @@ public:
 	using AiCalculateTargetWeight = MACRO_NAMED_SCRIPT("aiCalculateTargetWeight", AiCalculateTargetWeightParser);
 
 	using StatsForNerdsArmor = MACRO_NAMED_SCRIPT("statsForNerdsArmor", StatsForNerdsArmorParser);
+	using PsiAttackPerformedByUnit = MACRO_NAMED_SCRIPT("psiAttackPerformedByUnit", PsiAttackPerformedByUnitParser);
+	using EndGameTurn = MACRO_NAMED_SCRIPT("endGameTurn", EndGameTurnParser);
+	
 
 	////////////////////////////////////////////////////////////
 	//					item script
@@ -472,7 +484,9 @@ public:
 
 		AiCalculateTargetWeight,
 
-		StatsForNerdsArmor
+		StatsForNerdsArmor,
+		PsiAttackPerformedByUnit,
+		EndGameTurn
 	>;
 
 	using BattleItemScripts = ScriptGroup<Mod,

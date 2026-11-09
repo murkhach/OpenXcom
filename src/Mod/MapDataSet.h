@@ -49,7 +49,7 @@ public:
 	/// Loads voxeldata from a DAT file.
 	static void loadLOFTEMPS(const std::string &filename, std::vector<Uint16> *voxelData);
 	/// Gets the dataset name (used for MAP generation).
-	std::string getName() const;
+	const std::string &getName() const;
 	/// Gets the dataset size.
 	size_t getSize() const;
 	/// Gets the objects in this dataset.
@@ -66,6 +66,7 @@ public:
 	static MapData *getBlankFloorTile();
 	/// Gets a scorched earth tile.
 	static MapData *getScorchedEarthTile();
+	const static std::string blankSetName;
 };
 
 }
