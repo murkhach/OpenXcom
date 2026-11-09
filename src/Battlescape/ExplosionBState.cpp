@@ -29,6 +29,7 @@
 #include "../Savegame/Tile.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleItem.h"
+#include "../Mod/RuleSkill.h"
 #include "../Mod/Armor.h"
 #include "../Engine/RNG.h"
 
@@ -138,7 +139,29 @@ void ExplosionBState::init()
 			{
 				_power = 0;
 			}
-			if (!_parent->getTileEngine()->psiAttack(_attack, _targetPsiOrHit))
+			bool psiAttackSucceeded = _parent->getTileEngine()->psiAttack(_attack, _targetPsiOrHit);
+
+			BattleActionType type = _attack.type;
+			auto* attacker = _attack.attacker;
+			auto* weapon = _attack.weapon_item;
+			auto* ruleSkill = _attack.skill_rules;
+			auto* victim = _targetPsiOrHit;
+
+			int attackStrength = BattleUnit::getPsiAccuracy(_attack);
+			int defenseStrength = 30 + victim->getArmor()->getPsiDefence(victim);
+			SavedBattleGame* bg = _parent->getSave();
+			int succeeded = (psiAttackSucceeded) ? 1 : 0;
+
+			ModScript::scriptCallback<ModScript::PsiAttackPerformedByUnit>(
+				attacker->getArmor(),
+				psiAttackSucceeded,
+				weapon,
+				attacker, victim,
+				ruleSkill,
+				attackStrength, defenseStrength, type,
+				bg);
+
+			if (!psiAttackSucceeded)
 			{
 				_power = 0;
 				miss = true;

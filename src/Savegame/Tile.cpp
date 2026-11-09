@@ -32,6 +32,7 @@
 #include "../Battlescape/BattlescapeGame.h"
 #include "../fmath.h"
 #include "SavedBattleGame.h"
+#include "../Battlescape/TileEngine.h"
 
 namespace OpenXcom
 {
@@ -560,6 +561,82 @@ bool Tile::destroy(TilePart part, SpecialTileType type)
 		setMapData(MapDataSet::getScorchedEarthTile(), 1, 0, O_FLOOR);
 	}
 	return _objective;
+}
+
+/**
+ * Destroy a part on this tile. We first remove the old object, then replace it with the destroyed one.
+ * This is because the object type of the old and new one are not necessarily the same.
+ * If the destroyed part is an explosive, set the tile's explosive value, which will trigger a chained explosion.
+ * @param part the part to destroy.
+ * @param MCDidx the index of new tile in mapData set.
+ * @return bool Return true objective was destroyed.
+ */
+void Tile::destroyAndSet(TilePart part, int MCDidx, int dataSetIdx)
+{
+	if (_objects[part])
+	{
+		MapData* originalPart = _objects[part];
+		int originalMapDataSetID = _mapData->SetID[part];
+		int mapDataSetCount = _save->getMapDataSets()->size();
+		int MCDsetSize = 0;
+
+		if (dataSetIdx >= 0 && dataSetIdx < mapDataSetCount)
+		{
+			originalMapDataSetID = dataSetIdx;
+			MCDsetSize = _save->getMapDataSets()->at(dataSetIdx)->getSize();
+		}
+		else
+			MCDsetSize = originalPart->getDataset()->getSize();
+
+		/* WHEN outside of bounds nothing will happen */
+		if (MCDidx < 0 || MCDidx >= MCDsetSize)
+			return;
+
+		if (MCDidx > 0 || originalMapDataSetID != 0)
+		{
+			MapData* dead = _save->getMapDataSets()->at(originalMapDataSetID)->getObject(MCDidx);
+			/* skipped additional check
+			   if type of new object matches affected TiePart of tile
+
+			if (dead->getObjectType() != part)
+			    return;
+
+			*/
+			setMapData(dead, MCDidx, originalMapDataSetID, dead->getObjectType());
+		}
+		else
+			setMapData(0, -1, -1, part);
+
+		if (originalPart->getExplosive())
+		{
+			setExplosive(originalPart->getExplosive(), originalPart->getExplosiveType());
+		}
+		/* check if the floor on the lowest level is gone */
+		if (part == O_FLOOR && getPosition().z == 0 && _objects[O_FLOOR] == 0)
+		{
+			/* replace with scorched earth */
+			setMapData(MapDataSet::getScorchedEarthTile(), 1, 0, O_FLOOR);
+		}
+	}
+	else if (part != TilePart ::O_OBJECT || !getUnit())
+	{
+		/* add tile to blank space
+		    new part can not be object if Tile is occupied 
+		*/
+		int mapDataSetCount = _save->getMapDataSets()->size();
+		int MCDsetSize = 0;
+
+		if (dataSetIdx >= 0 && dataSetIdx < mapDataSetCount)
+		{
+			MCDsetSize = _save->getMapDataSets()->at(dataSetIdx)->getSize();
+
+			if (MCDidx > 0 && MCDidx < MCDsetSize)
+			{
+				MapData* newPart = _save->getMapDataSets()->at(dataSetIdx)->getObject(MCDidx);
+				setMapData(newPart, MCDidx, dataSetIdx, part);
+			}
+		}
+    }
 }
 
 /**
@@ -1094,6 +1171,11 @@ void Tile::resetObstacle(void)
 	_obstacle = 0;
 }
 
+const std::string &Tile::getTerrainName(int part) const
+{
+	return _objects[part] ? _objects[part]->getTerrainName() 
+						  : MapDataSet::blankSetName;
+}
 
 ////////////////////////////////////////////////////////////
 //					Script binding
@@ -1157,6 +1239,14 @@ void getDistanceVoxelScript(const Tile *t, int &ret, const Tile *other)
 void getFloorSpecialTileTypeScript(const Tile *t, int &ret)
 {
 	ret = t ? t->getFloorSpecialTileType() : TILE;
+}
+void getNorthWallSpecialTileTypeScript(const Tile* t, int& ret)
+{
+	ret = t ? t->getNorthWallSpecialTileType() : TILE;
+}
+void getWestWallSpecialTileTypeScript(const Tile* t, int& ret)
+{
+	ret = t ? t->getWestWallSpecialTileType() : TILE;
 }
 
 void getObjectSpecialTileTypeScript(const Tile *t, int &ret)
@@ -1229,9 +1319,143 @@ void mulDivByIntScript(Position& a, int v, int d)
 		a = {};
 	}
 }
+void switchToNextMCDTileScript(Tile* t, int inttp)
+{
+	TilePart tp = TilePart::O_FLOOR;
+	switch (inttp)
+	{
+		case TilePart::O_FLOOR:
+			tp = TilePart::O_FLOOR;
+		break;
+		case TilePart::O_NORTHWALL:
+			tp = TilePart::O_NORTHWALL;
+			break;
+		case TilePart::O_WESTWALL:
+			tp = TilePart::O_WESTWALL;
+			break;
+		case TilePart::O_OBJECT:
+			tp = TilePart::O_OBJECT;
+			break;
+		}
+	t->destroy(tp, SpecialTileType::MUST_DESTROY);
 
+	SavedBattleGame* game = t->getSavedGame();
+	if (t->hasNoFloor(game))
+		game->getTileEngine()->applyGravity(t);
+}
 
+void setMCDTileScript(Tile* t, int iTp, int iMcdIdx, int iDataSetIdx)
+{
+	TilePart tp = TilePart::O_FLOOR;
+	switch (iTp)
+	{
+	case TilePart::O_FLOOR:
+		tp = TilePart::O_FLOOR;
+		break;
+	case TilePart::O_NORTHWALL:
+		tp = TilePart::O_NORTHWALL;
+		break;
+	case TilePart::O_WESTWALL:
+		tp = TilePart::O_WESTWALL;
+		break;
+	case TilePart::O_OBJECT:
+		tp = TilePart::O_OBJECT;
+		break;
+	}
+	t->destroyAndSet(tp, iMcdIdx,iDataSetIdx);
+	SavedBattleGame* game = t->getSavedGame();
+	if (t->hasNoFloor(game))
+		game->getTileEngine()->applyGravity(t);
+}
 
+void getTerrainTypeIdxScript(const Tile* t, int& ret, int iTp)
+{
+	int mdsID, mdID;
+	TilePart tp = TilePart::O_FLOOR;
+	switch (iTp)
+	{
+	case TilePart::O_FLOOR:
+		tp = TilePart::O_FLOOR;
+		break;
+	case TilePart::O_NORTHWALL:
+		tp = TilePart::O_NORTHWALL;
+		break;
+	case TilePart::O_WESTWALL:
+		tp = TilePart::O_WESTWALL;
+		break;
+	case TilePart::O_OBJECT:
+		tp = TilePart::O_OBJECT;
+		break;
+	}
+
+	if (t)
+	{
+		t->getMapData(&mdID, &mdsID, tp);
+		ret = mdsID;
+	}
+	else
+	{
+		ret = -1;
+	}
+}
+void getMCDIdxScript(const Tile* t, int& ret, int iTp)
+{
+	int mdsID, mdID;
+	TilePart tp = TilePart::O_FLOOR;
+	switch (iTp)
+	{
+	case TilePart::O_FLOOR:
+		tp = TilePart::O_FLOOR;
+		break;
+	case TilePart::O_NORTHWALL:
+		tp = TilePart::O_NORTHWALL;
+		break;
+	case TilePart::O_WESTWALL:
+		tp = TilePart::O_WESTWALL;
+		break;
+	case TilePart::O_OBJECT:
+		tp = TilePart::O_OBJECT;
+		break;
+	}
+
+	if (t)
+	{
+		t->getMapData(&mdID, &mdsID, tp);
+		ret = mdID;
+	}
+	else
+	{
+		ret = -1;
+	}
+}
+void getTerrainNameScript(const Tile* t, ScriptText& txt, int iTp)
+{
+	TilePart tp = TilePart::O_FLOOR;
+	switch (iTp)
+	{
+	case TilePart::O_FLOOR:
+		tp = TilePart::O_FLOOR;
+		break;
+	case TilePart::O_NORTHWALL:
+		tp = TilePart::O_NORTHWALL;
+		break;
+	case TilePart::O_WESTWALL:
+		tp = TilePart::O_WESTWALL;
+		break;
+	case TilePart::O_OBJECT:
+		tp = TilePart::O_OBJECT;
+		break;
+	}
+
+	if (t)
+	{
+		txt = {t->getTerrainName(tp).c_str()};
+	}
+	else
+	{
+		txt = ScriptText::empty;
+	}
+}
 
 std::string debugDisplayScript(const Position* t)
 {
@@ -1330,6 +1554,8 @@ void Tile::ScriptRegister(ScriptParserBase* parser)
 	t.add<&getDistanceVoxelScript>("getDistanceVoxel");
 
 	t.add<&getFloorSpecialTileTypeScript>("getFloorSpecialTileType");
+	t.add<&getNorthWallSpecialTileTypeScript>("getNorthWallSpecialTileType");
+	t.add<&getWestWallSpecialTileTypeScript>("getWestWallSpecialTileType");
 	t.add<&getObjectSpecialTileTypeScript>("getObjectSpecialTileType");
 
 	t.addDebugDisplay<&debugDisplayScript>();
@@ -1338,6 +1564,17 @@ void Tile::ScriptRegister(ScriptParserBase* parser)
 	t.addCustomConst("STT_START_POINT", SpecialTileType::START_POINT);
 	t.addCustomConst("STT_END_POINT", SpecialTileType::END_POINT);
 
+	t.add<&switchToNextMCDTileScript>("switchToNextMCDTile", "destroy the specified TilePart of the tile and replaces it with a new one, which is determined by the `Die_MCD` parameter of the destroyed part.");
+	t.add<&setMCDTileScript>("setMCDTile", "destroy the specified TilePart of the tile and replaces it with a new one, which is determined by index of MCD in terain set and and index of terrainSet  (id it is -1 set of current TilePart will be used)");
+
+	t.addCustomConst("TP_O_FLOOR", TilePart::O_FLOOR);
+	t.addCustomConst("TP_O_NORTHWALL", TilePart::O_NORTHWALL);
+	t.addCustomConst("TP_O_WESTWALL", TilePart::O_WESTWALL);
+	t.addCustomConst("TP_O_OBJECT", TilePart::O_OBJECT);
+
+	t.add<&getMCDIdxScript>("getMCDIdx", "returns index (zero-based) of a tilePart (specified by parameter) within MCD terrain set");
+	t.add<&getTerrainTypeIdxScript>("getTerrainTypeIdx", "returns index (zero-based) of the corresponding MCD terrain set for a tilePart (specified by parameter)");
+	t.add<&getTerrainNameScript>("getTerrainName", "returns name of terrain for a tilePart (specified by parameter)");
 }
 
 } //namespace OpenXcom

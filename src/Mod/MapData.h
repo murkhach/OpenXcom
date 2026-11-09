@@ -171,6 +171,8 @@ public:
 	void setNoFloor(bool isNoFloor);
 	/// Sets this tile as not stopping LOS.
 	void setStopLOS(bool stopLOS);
+	/// Gets the name of associated terrain  
+	const std::string &getTerrainName() const;
 };
 
 }

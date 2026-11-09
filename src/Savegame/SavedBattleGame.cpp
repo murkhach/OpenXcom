@@ -3425,6 +3425,10 @@ void SavedBattleGame::resetUnitHitStates()
 		bu->resetHitState();
 	}
 }
+const std::string& SavedBattleGame::getGlobalTerrainName() const
+{
+	return this->_flattenedMapTerrainNames[0][0];
+}
 
 ////////////////////////////////////////////////////////////
 //					Script binding
@@ -3651,6 +3655,10 @@ void getSelectedUnitScript(const SavedBattleGame* sbg, const BattleUnit*& val)
 	}
 }
 
+void getGlobalTerrainNameScript(const SavedBattleGame* sbg, ScriptText& txt)
+{
+	txt = {sbg->getGlobalTerrainName().c_str()};
+}
 
 
 std::string debugDisplayScript(const SavedBattleGame* p)
@@ -3741,6 +3749,9 @@ void SavedBattleGame::ScriptRegister(ScriptParserBase* parser)
 	sbg.addCustomConst("DIFF_VETERAN", DIFF_VETERAN);
 	sbg.addCustomConst("DIFF_GENIUS", DIFF_GENIUS);
 	sbg.addCustomConst("DIFF_SUPERHUMAN", DIFF_SUPERHUMAN);
+
+	sbg.add<&getGlobalTerrainNameScript>("getGlobalTerrainName", "Returns terrain name of current MAP");
+	
 }
 
 /**

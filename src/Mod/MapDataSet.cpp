@@ -50,7 +50,7 @@ MapDataSet::~MapDataSet()
  * Gets the MapDataSet name (string).
  * @return The MapDataSet name.
  */
-std::string MapDataSet::getName() const
+const std::string &MapDataSet::getName() const
 {
 	return _name;
 }
@@ -303,5 +303,6 @@ MapData *MapDataSet::getScorchedEarthTile()
 {
 	return MapDataSet::_scorchedTile;
 }
+const std::string MapDataSet::blankSetName = "";
 
 }

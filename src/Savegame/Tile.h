@@ -170,6 +170,23 @@ public:
 	}
 
 	/**
+	 * Get special tile type of floor part.
+	 * @return Type of Tile.
+	 */
+	SpecialTileType getNorthWallSpecialTileType() const
+	{
+		return _objects[O_NORTHWALL] ? _objects[O_NORTHWALL]->getSpecialType() : TILE;
+	}
+
+	/**
+	 * Get special tile type of object part.
+	 * @return Type of Tile.
+	 */
+	SpecialTileType getWestWallSpecialTileType() const
+	{
+		return _objects[O_WESTWALL] ? _objects[O_WESTWALL]->getSpecialType() : TILE;
+	}
+	/**
 	 * Get special tile type of object part.
 	 * @return Type of Tile.
 	 */
@@ -222,7 +239,6 @@ public:
 	{
 		return _cache.terrainLevel;
 	}
-
 	/**
 	 * Gets the tile's position.
 	 * @return position
@@ -308,6 +324,8 @@ public:
 	int getShade() const;
 	/// Destroy a tile part.
 	bool destroy(TilePart part, SpecialTileType type);
+	/// Destroy a tile part.
+	void destroyAndSet(TilePart part, int mcdIdx, int dataSetIdx);
 	/// Damage a tile part.
 	bool damage(TilePart part, int power, SpecialTileType type);
 	/// Set a "virtual" explosive on this tile, to detonate later.
@@ -420,6 +438,8 @@ public:
 	}
 	/// reset obstacle flags
 	void resetObstacle(void);
+	// returns terrain name of tile
+	const std::string &getTerrainName(int part) const;
 };
 
 }
