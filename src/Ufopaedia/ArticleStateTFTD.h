@@ -18,6 +18,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ArticleState.h"
+#include "..\Interface\ArrowButtonSimple.h"
 
 namespace OpenXcom
 {
@@ -33,10 +34,20 @@ namespace OpenXcom
 	public:
 		ArticleStateTFTD(ArticleDefinitionTFTD *defs, std::shared_ptr<ArticleCommonState> state);
 		virtual ~ArticleStateTFTD();
-
+		void UpdateScrollBtns();
 	protected:
 		Text *_txtTitle;
 		Text *_txtInfo;
 		Uint8 _buttonColor, _textColor, _textColor2, _listColor1, _listColor2, _ammoColor, _arrowColor;
+
+		/// buttons for text scrolling
+		ArrowButtonSimple* _btnScrollUp;
+		ArrowButtonSimple* _btnScrollDown;
+
+        /// callback for SCROLL UP button
+		void btnScrollUpClick(Action* action);
+
+		/// callback for SCROLL DOWN button
+		void btnScrollDownClick(Action* action);
 	};
 }

@@ -671,8 +671,50 @@ void Text::mousePress(Action* action, State* state)
 
 			_scrollY = Clamp(_scrollY + scrollAmount, scrollArea, 0);
 			_redraw = true;
+			if (srollCallbck != nullptr)
+				srollCallbck();
+
 		}
 	}
 }
+
+bool Text::canScrollUp() const
+{
+	return _scrollY < 0;
+}
+bool Text::canScrollDown() const
+{
+	if (_scroll)
+	{
+		int scrollArea = getHeight() - getTextHeight();
+		return _scrollY > scrollArea;
+	}
+	return false;
+}
+void Text::Scroll(int direction)
+{
+	if (_scroll)
+	{
+		int scrollArea = getHeight() - getTextHeight();
+		if (scrollArea < 0)
+		{
+			int scrollAmount = _font->getHeight() + _font->getSpacing();
+
+			scrollAmount *= direction;
+			_scrollY = Clamp(_scrollY + scrollAmount, scrollArea, 0);
+			_redraw = true;
+			if (srollCallbck != nullptr)
+				srollCallbck();
+		}
+
+	}
+	
+
+}
+void Text::SetScrollCallback(const std::function<void()>& func)
+{
+	srollCallbck = func;
+}
+
 
 }

@@ -1229,6 +1229,9 @@
     <ClCompile Include="Basescape\SoldierVoiceState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="Interface\ArrowButtonSimple.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2713,6 +2716,9 @@
     </ClInclude>
     <ClInclude Include="Basescape\SoldierVoiceState.h">
       <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\ArrowButtonSimple.h">
+      <Filter>Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

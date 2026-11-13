@@ -34,6 +34,7 @@ namespace OpenXcom
 	ArticleStateTFTDCraftWeapon::ArticleStateTFTDCraftWeapon(ArticleDefinitionTFTD *defs, std::shared_ptr<ArticleCommonState> state) : ArticleStateTFTD(defs, std::move(state))
 	{
 		_txtInfo->setHeight(88);
+		_btnScrollDown->setY(110);
 
 		_btnInfo->setVisible(_game->getMod()->getShowPediaInfoButton());
 

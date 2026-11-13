@@ -119,7 +119,6 @@ namespace OpenXcom
 		_btnNext->setHeight(10);
 		_btnNext->setWidth(23);
 		_btnNext->setColor(_buttonColor);
-
 		ArticleState::initLayout();
 
 		// Step 1: background image
@@ -173,6 +172,28 @@ namespace OpenXcom
 		_txtInfo->setScrollable(true);
 		_txtInfo->setText(tr(defs->getTextForPage(_state->current_page)));
 
+		_btnScrollUp = new ArrowButtonSimple(ARROW_BIG_UP, 14, 14, 305, 35);
+		_btnScrollDown = new ArrowButtonSimple(ARROW_BIG_DOWN, 14, 14, 305, 160);
+		add(_btnScrollUp);
+		add(_btnScrollDown);
+
+		_btnScrollUp->setColor(_textColor);
+		_btnScrollUp->onMouseClick((ActionHandler)&ArticleStateTFTD::btnScrollUpClick);
+		_btnScrollUp->onKeyboardPress((ActionHandler)&ArticleStateTFTD::btnScrollUpClick, Options::keyGeoUp);
+		_btnScrollUp->setVisible(_txtInfo->canScrollUp());
+
+		_btnScrollDown->setColor(_textColor);
+		_btnScrollDown->onMouseClick((ActionHandler)&ArticleStateTFTD::btnScrollDownClick);
+		_btnScrollDown->onKeyboardPress((ActionHandler)&ArticleStateTFTD::btnScrollDownClick, Options::keyGeoDown);
+		_btnScrollDown->setVisible(_txtInfo->canScrollDown());
+		_txtInfo->SetScrollCallback([this]()
+		{
+			this->UpdateScrollBtns(); 
+		});
+
+
+
+
 		// all of the above are common to the TFTD articles.
 
 		if (defs->getType() == UFOPAEDIA_TYPE_TFTD)
@@ -188,5 +209,17 @@ namespace OpenXcom
 
 	ArticleStateTFTD::~ArticleStateTFTD()
 	{}
-
-}
+	void ArticleStateTFTD::btnScrollUpClick(Action*)
+	{
+		_txtInfo->Scroll(1);
+	}
+	void ArticleStateTFTD::btnScrollDownClick(Action*)
+	{
+		_txtInfo->Scroll(-1);
+	}
+	void ArticleStateTFTD::UpdateScrollBtns()
+	{
+		_btnScrollUp->setVisible(_txtInfo->canScrollUp());
+		_btnScrollDown->setVisible(_txtInfo->canScrollDown());
+	}
+	}

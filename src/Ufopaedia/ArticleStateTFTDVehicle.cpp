@@ -18,11 +18,13 @@
  */
 
 #include "../Mod/ArticleDefinition.h"
+#include "ArticleStateTFTD.h"
 #include "ArticleStateTFTDVehicle.h"
 #include <sstream>
 #include "../Engine/Game.h"
 #include "../Engine/LocalizedText.h"
 #include "../Interface/TextList.h"
+#include "../Interface/TextButton.h"
 #include "../Mod/Mod.h"
 #include "../Mod/Unit.h"
 #include "../Mod/Armor.h"
@@ -34,6 +36,7 @@ namespace OpenXcom
 	ArticleStateTFTDVehicle::ArticleStateTFTDVehicle(ArticleDefinitionTFTD *defs, std::shared_ptr<ArticleCommonState> state) : ArticleStateTFTD(defs, std::move(state))
 	{
 		_txtInfo->setHeight(72);
+		_btnScrollDown->setY(94);
 
 		RuleItem *item = _game->getMod()->getItem(defs->id, true);
 		Unit *unit = item->getVehicleUnit();

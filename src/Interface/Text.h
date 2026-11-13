@@ -20,6 +20,7 @@
 #include "../Engine/InteractiveSurface.h"
 #include <vector>
 #include <string>
+#include <functional>
 #include "../Engine/Unicode.h"
 
 namespace OpenXcom
@@ -50,7 +51,8 @@ private:
 	TextVAlign _valign;
 	Uint8 _color, _color2;
 	int _scrollY;
-
+	std::function<void()> srollCallbck;
+	
 	/// Processes the contained text.
 	void processText();
 	/// Gets the X position of a text line.
@@ -106,6 +108,14 @@ public:
 	void setScrollable(bool scroll);
 	/// Special handling for mouse presses.
 	void mousePress(Action* action, State* state) override;
+
+	/// for text scrolling buttons
+	bool canScrollUp() const;
+	bool canScrollDown() const;
+
+	/// Scroll in specific direction
+	void Scroll(int direction);
+	void SetScrollCallback(const std::function<void()>& func);
 };
 
 }
